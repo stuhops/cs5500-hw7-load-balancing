@@ -17,8 +17,15 @@ using namespace std::chrono;
 // TODO: Auto generate numbers and do auto send and receive
 
 void printTokenData(int rank, int size, int token, int special, int work_performed) {
+  string print_token;
+  switch(token) {
+    case 2: print_token = "White"; break;
+    case 1: print_token = "Black"; break;
+    case 0: print_token = "Terminate"; break;
+  }
+  
   cout << "Rank    : " << rank << " / " << size-1
-       << "      Token   : " << token
+       << "      Token   : " << print_token
        << "      Special : " << special
        << "      Work Perf: " <<  work_performed
        << endl;
@@ -64,9 +71,8 @@ int main(int argc, char **argv) {
   int token_flag;
   int work_flag;
 
-  // <<<<<<<<<<<<<<<<<<<<<<<< Start the Process >>>>>>>>>>>>>>>>>>>>>>>>>>>
+  // <<<<<<<<<<<<<<<<<<<<<<<< Seed the Program >>>>>>>>>>>>>>>>>>>>>>>>>>>
   if(!rank) {
-    print("\nToken info: 2 means the token is white, 1 is black, and 0 tells the process to terminate");
     work.push(1);
   }
 
@@ -75,7 +81,9 @@ int main(int argc, char **argv) {
     token_flag = 0;
     MPI_Iprobe((rank - 1 + size) % size, TOKEN_TAG, MCW, &token_flag, &token_status);
     if(token_flag) {
+      print("");
       MPI_Recv(&token, 1, MPI_INT, (rank - 1 + size) % size, TOKEN_TAG, MCW,MPI_STATUS_IGNORE);
+      print("");
     }
 
     for(int i = 0; i < size; i++) {
@@ -121,14 +129,14 @@ int main(int argc, char **argv) {
               token = 2;
               MPI_Send(&token, 1, MPI_INT, (rank + 1) % size, TOKEN_TAG, MCW);
             }
-            print("----------------------------------------------------------------------");
+            print("--------------------------------------------------------------------------");
             printTokenData(rank, size, token, special, work_performed);
           }
         }
         else {
           tokenStarted = true;
           token = 2;
-          print("----------------------------------------------------------------------");
+          print("--------------------------------------------------------------------------");
           printTokenData(rank, size, token, special, work_performed);
           MPI_Send(&token, 1, MPI_INT, (rank + 1) % size, TOKEN_TAG, MCW);
         }
@@ -177,7 +185,7 @@ int main(int argc, char **argv) {
   }
 
   if(rank == size-1)
-    print("----------------------------------------------------------------------");
+    print("--------------------------------------------------------------------------");
   MPI_Finalize();
   return 0;
 }
